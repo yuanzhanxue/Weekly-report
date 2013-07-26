@@ -1,0 +1,78 @@
+<script type="text/javascript">
+  $(function() {
+    $('.test_commnet').popover();
+  });
+  
+  function saveChange(id) {
+    var newReport = $('#report_text_' + id).val();
+    $.post("/updateReport",{'_id': id, 'newreport': newReport},function(response){
+      if(response == 'true') {
+        newReport = newReport.replace('\n', '<p><p>');
+
+        $('#div_' + id).html(newReport);
+      }
+    });
+  }
+  
+  function deleteReport(id, weekReport) {
+    var r=confirm('Confirm delete '+ weekReport +'?');
+    if(r == false) {
+      return;
+    }
+    $.get('/report/' +id + '/remove', function(response) {
+      if(response == 'true') {
+        $('#div_' + id).parent().remove();
+      }
+    })
+  }
+</script>
+<style type="text/css">
+  .textarea-padding {
+    padding-right: 25px;
+    padding-left: 10px;
+  }
+</style>
+
+<% reports.forEach(function(report, index) {
+     var time,
+       checkDate = new Date(report.time.getTime());
+     
+     // Find Thursday of this week starting on Monday
+     checkDate.setDate(checkDate.getDate() + 4 - (checkDate.getDay() || 7));
+     
+     time = checkDate.getTime();
+     checkDate.setMonth(0); // Compare with Jan 1
+     checkDate.setDate(1);
+     var week = new String(report.time.getFullYear());
+     week = week.slice(-2) + (Math.floor(Math.round((time - checkDate) / 86400000) / 7) + 1);
+  %>
+  <div class="row span12">
+    <h2>W<%= week%> report by <a href="/u/<%= report.user %>"><%= report.user %></a></h2>
+    <p><small><%= report.time %></small></p>
+    <div id="div_<%= report.id %>"><%- report.htmlReport %></div>
+    <ul class="inline">
+      <li><a href="#" class="test_commnet" data-toggle="popover" data-placement="right" data-content="In developing."><i class="icon-comment"></i> Comments</a></li>
+      <% if (user && user.name == report.user) { %>
+        <li>|</li>
+        <li><a href="#" onclick="javascript:deleteReport('<%= report.id %>', 'W<%= week%> report')"><i class="icon-trash"></i> Delete</a></li>
+        <li>|</li>
+        <li><a href="#editModal<%= report.id%>" data-toggle="modal"><i class="icon-edit"></i> Edit</a></li>
+        
+        <!-- Modal dialog -->
+        <div id="editModal<%= report.id%>" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="editModalLabe" aria-hidden="true">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h3 id="editModalLabe">W<%= week%> report by <%= report.user %></h3>
+          </div>
+          <div class="modal-body textarea-padding">
+            <textarea id="report_text_<%= report.id %>" type="text" class="row-fluid" name="report" rows="5"><%= report.report %></textarea>
+          </div>
+          <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+            <button class="btn btn-primary" data-dismiss="modal" onclick="javascript:saveChange('<%= report.id %>')">Save changes</button>
+          </div>
+        </div>
+      <% } %>
+    </ul>
+  </div>
+<% }) %>

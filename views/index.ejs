@@ -1,0 +1,76 @@
+<script src="/javascripts/jquery-ui-1.10.3.custom.js"></script>
+<link rel="stylesheet" href="/stylesheets/jquery-ui-1.10.3.custom.css" />
+<style type="text/css">
+  .highlight {
+      border: 1px solid black;
+  }
+  .white {
+      background: white !important;
+  }
+</style>
+
+<script type="text/javascript">
+  $(function() {
+    var selectCurrentWeek = function() {
+        window.setTimeout(function() {
+            $('.week-picker').find('.ui-datepicker-current-day a').addClass('ui-state-active');
+
+            // highlight the TR
+            $('.ui-datepicker-current-day').parent().addClass('highlight');
+
+            // highlight the TD > A
+            $('.ui-datepicker-current-day:eq(0)').siblings().find('a').addClass('white');
+        }, 1);
+    }
+  
+    $('.week-picker').datepicker({
+      showOtherMonths: true,
+      selectOtherMonths: true,
+      showWeek: true,
+      firstDay: 1,
+      onSelect: function(dateText, inst) {          
+          var $weekPicker = $('.week-picker');
+          var date = $weekPicker.datepicker('getDate') || new Date();
+          var day = date.getDay();
+          day = day == 0 ? 7 : day;
+          var startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() - day + 1);
+          var endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() - day + 8);
+          $('#display-reports').load("/week_report", {'start':startDate, 'end':endDate});
+          selectCurrentWeek();
+      }
+    });
+  });
+</script>
+
+<% if (!user) { %>
+  <div class="hero-unit">
+    <h1>Welcome Weekly Report</h1>
+    <p>Weekly Report is based on Node.js</p>
+    <p>
+      <a class="btn btn-primary btn-large" href="/login">Login</a>
+      <a class="btn btn-large" href="/reg">Register</a>
+    </p>
+  </div>
+<% } else { %>
+  <div class="container-fluid">
+    <div class="row-fluid">
+      <div class="span3 well">
+        <div class="week-picker"></div>
+        <div>
+          <ul>
+            <li class="active"><a href="/">All</a></li>
+            <% users.forEach(function(u, index) { %>
+              <li><a href="/u/<%= u.name %>"><%= u.name %></a></li>
+            <% }) %>
+          </ul>
+        </div>
+      </div>
+      <div class="span9 well">
+        <%- include say %>
+        <div id="display-reports">
+          <%- include reports %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% } %>

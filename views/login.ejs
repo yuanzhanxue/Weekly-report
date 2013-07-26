@@ -1,0 +1,43 @@
+<script>
+    $(document).ready(function () {
+        $("#username").change(function(){
+            var usr = $("#username").val();
+            if(!usr || !usr.length) {
+                $("#user_error").addClass("invisible");
+                $("#user_group").removeClass("error");
+                return;
+            }
+            $.post("/verifyUser",{'username':usr},function(response,status,xhr){
+                if(response == 'false'){
+                    $("#user_error").removeClass("invisible");
+                    $("#user_group").addClass("error");
+                } else {
+                    $("#user_error").addClass("invisible");
+                    $("#user_group").removeClass("error");
+                }
+            });
+        });
+    });
+</script>
+
+<form class="form-horizontal" method="post">
+  <fieldset>
+    <legend>User Login</legend>
+    <div id="user_group" class="control-group">
+      <label class="control-label" for="username">User Name</label>
+      <div class="controls">
+        <input type="text" class="input-xlarge" id="username" name="username" />
+        <span id="user_error" class="invisible help-inline">User doesn't exist!</span>
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="password">Password</label>
+      <div class="controls">
+        <input type="password" class="input-xlarge" id="password" name="password" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Login</button>
+    </div>
+  <fieldset>
+</form>
